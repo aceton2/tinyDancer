@@ -68,8 +68,10 @@ int gateBreached() {
 
     if(nowOutOfRange) {
         output = -1;
+        Serial.println(output);
     } else if (wasOutOfRange) {
         output = 1;
+        Serial.println(output);
     }
 
     wasOutOfRange = nowOutOfRange;

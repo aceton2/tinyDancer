@@ -8,7 +8,7 @@ void setup()
   volumeSetup();
 
   // comment out to deactivate motors
-  motorSetup();
+  // motorSetup();
 }
 
 // control motors based on distance measures
@@ -21,13 +21,14 @@ void checkDrive()
   else
   {
     moveForward();
-  }
+  } 
 }
 
 // control volume based on distance measures
 void checkVolume() 
 {  
   setVolumeChangeDirection( gateBreached() );
+  delay(60);
   runVolumeChange();
 }
 
@@ -39,5 +40,5 @@ void loop()
   checkVolume();
 
   // comment out to deactivate driving
-  checkDrive();
+  // checkDrive();
 }

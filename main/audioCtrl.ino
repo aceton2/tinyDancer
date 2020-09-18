@@ -62,6 +62,7 @@ void runVolumeChange()
   {
     Serial.println("-----: +");
     sendCommand(CMD_VOLUME_UP, 0);
+    steps++;
   }
   else
   {
@@ -69,12 +70,16 @@ void runVolumeChange()
     sendCommand(CMD_VOLUME_DOWN, 0);
   }
 
-  steps++;
+  //steps++;
   if (steps > 50)
   {
     if(goingUp) { 
-      raisingToPeak = false; 
-      Serial.println("////// PEAK //////");
+      Serial.print("////// PEAK and waiting for ");
+      int waiting_time = 15000;
+      Serial.print(waiting_time/1000);
+      Serial.println(" seconds //////");
+      delay(waiting_time);
+      raisingToPeak = false;  
     }
     steps = 0;
   }
