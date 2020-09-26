@@ -1,25 +1,25 @@
-#include <Arduino.h>
 #include <AFMotor.h>
-
-// ADJUSTABLES
-
-#define MAX_SPEED 400 // Max speed the motors will go
-
-// MOTORS
+#include "avdweb_VirtualDelay.h"
 
 AF_DCMotor motor1(1, MOTOR12_1KHZ);
 AF_DCMotor motor2(2, MOTOR12_1KHZ);
 
+VirtualDelay delayStartRotate, delayStopRotate, delayContinueForward;
+
+int turningStep = 0; // 0 no turning, 1 preRotateStop, 2 rotating, 3 postRotateStop
 boolean goesForward = false;
 boolean lastTurnM1 = false;
 int speedSet = 0;
 
-void motorSetup()
+// SETUP
 
+void motorSetup()
 {
   motor1.run(RELEASE);
   motor2.run(RELEASE);
 }
+
+// BASIC MANEUVERS
 
 void moveStop()
 {
@@ -30,11 +30,14 @@ void moveStop()
 
 void accelerate()
 {
-  for (speedSet = 0; speedSet < MAX_SPEED; speedSet += 2) // slowly bring the speed up to avoid loading down the batteries too quickly
+  Serial.println("accelerate");
+
+  // slowly bring the speed up to avoid loading down the batteries too quickly
+  for (speedSet = 0; speedSet < MAX_DRIVE_SPEED; speedSet += 2) 
   {
     motor1.setSpeed(speedSet);
     motor2.setSpeed(speedSet);
-    delay(5);
+    // delay(5);
   }
 }
 
@@ -49,13 +52,8 @@ void moveForward()
   }
 }
 
-void moveTurn()
-{
-  moveStop();
-
-  delay(500);
-
-  if (!lastTurnM1)
+void rotate() {
+    if (!lastTurnM1)
   {
     motor1.run(FORWARD);
     motor2.run(BACKWARD);
@@ -69,11 +67,46 @@ void moveTurn()
   }
 
   accelerate();
+}
 
-  // RANDOM TURN TIME
-  delay(random(100, 2500));
 
-  moveStop();
+// DRIVING LOGIC
 
-  delay(500);
+bool isTurning() {
+  return turningStep > 0;
+}
+
+void doDriveCheck(boolean isObstacleDetected)
+{
+  if (isObstacleDetected || isTurning()) {
+    doTurnChecks();
+  }
+  else {
+    moveForward();
+  } 
+}
+
+void doTurnChecks() {
+  
+  if(turningStep == 0) {
+    moveStop();
+    delayStartRotate.start(PRE_TURN_PAUSE);
+    turningStep = 1;
+  }
+
+  if((turningStep == 1) && delayStartRotate.elapsed()) {
+    rotate();
+    delayStopRotate.start(random(TURN_TIME_MIN, TURN_TIME_MAX));
+    turningStep = 2;
+  }
+
+  if((turningStep == 2) && delayStopRotate.elapsed()) {
+    moveStop();
+    delayContinueForward.start(PRE_TURN_PAUSE);
+    turningStep = 3;
+  }
+
+  if((turningStep == 3) && delayContinueForward.elapsed()) {
+    turningStep = 0;
+  }
 }

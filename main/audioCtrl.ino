@@ -1,8 +1,6 @@
 #include <SoftwareSerial.h>
-#include <Arduino.h>
+#include "avdweb_VirtualDelay.h"
 
-#define ARDUINO_RX_FROM_MP3 5
-#define ARDUINO_TX_TO_MP3 6
 SoftwareSerial mySerial(ARDUINO_RX_FROM_MP3, ARDUINO_TX_TO_MP3);
 static int8_t Send_buf[8] = {0};
 
@@ -12,15 +10,11 @@ static int8_t Send_buf[8] = {0};
 #define CMD_SEL_DEV 0X09
 #define DEV_TF 0X02
 #define CMD_PLAY_W_VOL 0X22
-#define CMD_PLAY 0X0D
-#define CMD_PAUSE 0X0E
-#define CMD_PREVIOUS 0X02
-#define CMD_NEXT 0X01
+#define SNG_CYCL_PLAY 0x08
 #define CMD_VOLUME_UP 0x04
 #define CMD_VOLUME_DOWN 0x05
-#define SNG_CYCL_PLAY 0x08
 
-int steps = 0;
+VirtualDelay delayPeak;
 
 void sendCommand(int8_t command, int16_t dat)
 {
@@ -51,47 +45,51 @@ void volumeSetup()
   Serial.println("audio start complete..");
 }
 
-// state variables
-
 boolean raisingToPeak = false;
-boolean goingUp = false;
+boolean increaseVolume = false;
+int steps = 0;
 
-void runVolumeChange()
+void runVolumeChange(int objectInRange)
 {
-  if (goingUp)
-  {
-    Serial.println("-----: +");
+  manageVolumeChangeDirection(objectInRange);
+  
+  if (increaseVolume) {
+    Serial.println("----- +");
     sendCommand(CMD_VOLUME_UP, 0);
     steps++;
   }
-  else
-  {
-    Serial.println("-----: -");
+  else {
+    Serial.println("----- -");
     sendCommand(CMD_VOLUME_DOWN, 0);
   }
 
-  //steps++;
-  if (steps > 50)
-  {
-    if(goingUp) { 
-      Serial.print("////// PEAK and waiting for ");
-      int waiting_time = 15000;
-      Serial.print(waiting_time/1000);
-      Serial.println(" seconds //////");
-      delay(waiting_time);
-      raisingToPeak = false;  
-    }
-    steps = 0;
+  if (steps > 50 && increaseVolume) {
+      delayedPeakReset();
   }
 }
 
-void setVolumeChangeDirection(int direction) {
-  if(direction == 1) {
+void manageVolumeChangeDirection(int objectInRange) {
+  if(objectInRange == 1) {
     raisingToPeak = true;
-    goingUp = true;
+    increaseVolume = true;
   }
 
-  if(direction == -1 && !raisingToPeak) {
-    goingUp = false;
+  if(objectInRange == -1 && !raisingToPeak) {
+    increaseVolume = false;
+  }
+}
+
+void delayedPeakReset() {
+  if (!delayPeak.running) {
+    Serial.print("////// PEAK START");
+
+    delayPeak.start(PEAK_VOLUME_PRESENCE);
+  }
+
+  if (delayPeak.elapsed()) {
+    Serial.println("////// PEAK END");
+
+    raisingToPeak = false;
+    steps = 0;
   }
 }
