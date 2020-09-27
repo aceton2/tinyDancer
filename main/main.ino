@@ -11,7 +11,7 @@
 #define MAX_DIST 400 // max dist measured
 
 #define MAX_DRIVE_SPEED 400 // max drive speed
-#define MIN_TURNING_DISTANCE 30 // min distance before turning driving direction
+#define MIN_TURNING_DISTANCE 40 // min distance before turning driving direction
 #define PRE_TURN_PAUSE 500 // millisecond to wait before rotating
 #define POST_TURN_PAUSE 500 // millisecond to wait after rotating
 #define TURN_TIME_MIN 400 // minimum millisecond to rotate
@@ -52,7 +52,7 @@ void setup()
 void loop()
 {
   if(FEATURES_dynamicAcoustics) {
-    runVolumeChange( isGateBreached() );
+    runVolumeChange( isObstacleInRange() );
   }
 
   if(FEATURES_motorDrives) {
