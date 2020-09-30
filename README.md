@@ -1,4 +1,6 @@
 
+THIS BRANCH REFLECTS THE CODE LAST UPLOADED TO DEVICES
+
 To get up and running
 
 1. Download the Arduino IDE
