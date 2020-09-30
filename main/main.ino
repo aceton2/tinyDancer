@@ -52,7 +52,7 @@ void setup()
 void loop()
 {
   if(FEATURES_dynamicAcoustics) {
-    runVolumeChange( isObstacleInRange() );
+    runVolumeChange( isGateBreached() );
   }
 
   if(FEATURES_motorDrives) {

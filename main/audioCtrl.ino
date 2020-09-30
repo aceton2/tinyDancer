@@ -49,7 +49,7 @@ boolean raisingToPeak = false;
 boolean increaseVolume = false;
 int steps = 0;
 
-void runVolumeChange(bool objectInRange)
+void runVolumeChange(int objectInRange)
 {
   manageVolumeChangeDirection(objectInRange);
   
@@ -68,11 +68,13 @@ void runVolumeChange(bool objectInRange)
   }
 }
 
-void manageVolumeChangeDirection(bool objectInRange) {
-  if(objectInRange) {
+void manageVolumeChangeDirection(int objectInRange) {
+  if(objectInRange == 1) {
     raisingToPeak = true;
     increaseVolume = true;
-  } else if(!raisingToPeak) {
+  }
+
+  if(objectInRange == -1 && !raisingToPeak) {
     increaseVolume = false;
   }
 }
